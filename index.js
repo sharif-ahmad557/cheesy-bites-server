@@ -1,11 +1,18 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
-const app = express();
-const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
-app.use(cors());
+const app = express();
+const port = process.env.PORT || 5000;
+
+// Middleware
+app.use(
+  cors({
+    origin: ["http://localhost:3000", "https://cheesy-bites-client.vercel.app"],
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.3ezpklr.mongodb.net/?appName=Cluster0`;
@@ -20,8 +27,6 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    await client.connect();
-
     const database = client.db("cheesybites");
     const menuCollection = database.collection("menu");
 
@@ -58,13 +63,12 @@ async function run() {
       const result = await menuCollection.deleteOne(query);
       res.send(result);
     });
-    
+
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
   } finally {
-    // await client.close();
   }
 }
 run().catch(console.dir);
@@ -76,3 +80,5 @@ app.get("/", (req, res) => {
 app.listen(port, () => {
   console.log(`Cheesy Bites server started on port ${port}`);
 });
+
+module.exports = app;
